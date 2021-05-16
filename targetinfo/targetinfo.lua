@@ -188,7 +188,6 @@ ashita.register_event('incoming_packet', function(id, size, data)
         -- Check that the packet contains all of the information of a check, because
         -- the header ID is used for lots of different messages.
         if (valid_types[v] == nil or valid_conditions[m] == nil) then
-            print(string.format('%s/%s', v, m))
             return false;
         end
 
