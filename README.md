@@ -1,7 +1,7 @@
 # AshitaTargetInfo
 A plugin for ashita, which adds a movable target information window. Initially, the window will only contain the name and hp percent of the mob. Once the user does a /check on the monster, then the window will contain level information.
 
-![alt text](https://raw.githubusercontent.com/lejar/AshitaTargetInfo/main/targetinfo.PNG)
+![alt text](https://raw.githubusercontent.com/lejar/AshitaTargetInfo/master/targetinfo.PNG)
 
 # Installation
 Copy the targetinfo folder into "C:\Program Files (x86)\PlayOnline\Ashita\addons".
