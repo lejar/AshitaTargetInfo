@@ -74,7 +74,25 @@ end);
 -- desc: Called when the addon is rendering.
 ----------------------------------------------------------------------------------------------------
 ashita.register_event('render', function()
-    
+    -- Obtain the local player.
+    local player = GetPlayerEntity();
+    if (player == nil) then
+        return;
+    end
+
+    -- Go through the cached levels and check if the entity is either too far away or dead.
+    -- Using the spawn packets to reset entries is unreliable.
+    for index, level in pairs(levels) do
+        local entity = GetEntity(index);
+
+        if (entity == nil or entity.HealthPercent == 0 or math.sqrt(entity.Distance) > 50) then
+            -- Deleting entries in a loop in lua is okay.
+            levels[index] = nil;
+            conditions[index] = nil;
+        end
+    end
+
+    -- Get the reference to the target entity.
     local target_index = AshitaCore:GetDataManager():GetTarget():GetTargetIndex();
     local target = GetEntity(target_index);
 
@@ -158,18 +176,6 @@ ashita.register_event('incoming_packet', function(id, size, data)
         levels = {};
         conditions = {};
         return false;
-    end
-
-    -- Entity spawn. Set the level for any spawned monsters to nil.
-    if (id == 0x005B) then
-        local spawn_id = struct.unpack('I', data, 0x10 + 1); -- Monster Level
-        local spawn_type = struct.unpack('B', data, 0x16 + 1); -- Monster Level
-
-        -- Monster spawn id is 3
-        if spawn_type == 3 then
-            levels[spawn_id] = nil;
-            conditions[spawn_id] = nil;
-        end
     end
 
     -- Message Basic Packet
