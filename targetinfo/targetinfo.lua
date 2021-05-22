@@ -75,8 +75,9 @@ end);
 ----------------------------------------------------------------------------------------------------
 ashita.register_event('render', function()
     -- Obtain the local player.
+    local party = AshitaCore:GetDataManager():GetParty();
     local player = GetPlayerEntity();
-    if (player == nil) then
+    if (player == nil or party == nil) then
         return;
     end
 
@@ -96,14 +97,19 @@ ashita.register_event('render', function()
     local target_index = AshitaCore:GetDataManager():GetTarget():GetTargetIndex();
     local target = GetEntity(target_index);
 
+    -- If there is no target, do not render the window.
+    if target == nil then
+        return;
+    end
+
     -- Check if the target is another player.
     local is_player = false;
-    if (target ~= nil and target.EntityType == 0) then
+    if (target ~= nil and target.EntityType == EntityType.Player) then
         is_player = true;
     end
 
     local is_npc = false;
-    if (target ~= nil and target.EntityType == 1) then
+    if (target ~= nil and (bit.band(target.SpawnFlags, EntitySpawnFlags.Npc) ~= 0 or bit.band(target.SpawnFlags, EntitySpawnFlags.Object) ~= 0)) then
         is_npc = true;
     end
 
@@ -112,6 +118,25 @@ ashita.register_event('render', function()
     local player = GetPlayerEntity();
     if (player ~= nil) then
         is_pet = target_index == player.PetTargetIndex;
+    end
+
+    -- Check if the target is our combat target.
+    -- This is done by checking if anyone in our party/aliance is marked
+    -- as the mobs claim id.
+    local is_combat_target = false;
+    if (target.ClaimServerId ~= 0) then
+        for x = 0, 17 do
+            local memberID = party:GetMemberServerId(x);
+            if target.ClaimServerId == memberID then
+                is_combat_target = true;
+            end
+        end
+    end
+
+    -- Check if the target is claimed by someone else.
+    local is_claimed_by_someone_else = false;
+    if (target.ClaimServerId ~= 0 and not is_combat_target) then
+        is_claimed_by_someone_else = true;
     end
 
     -- Initialize the window draw.
@@ -140,10 +165,17 @@ ashita.register_event('render', function()
         elseif is_pet then
             -- Pets are blue.
             imgui.PushStyleColor(ImGuiCol_Text, 0.62, 0.82, 0.81, 1.0);
-        else
-            -- Monsters are red.
+        elseif is_combat_target then
+            -- The combat target is red.
             imgui.PushStyleColor(ImGuiCol_Text, 1.0, 0.5, 0.5, 1.0);
+        elseif is_claimed_by_someone_else then
+            -- Monsters that are claimed by others are purple.
+            imgui.PushStyleColor(ImGuiCol_Text, 1.0, 0.0, 0.70, 1.0);
+        else
+            -- Monsters are yellowish.
+            imgui.PushStyleColor(ImGuiCol_Text, 0.92, 0.92, 0.70, 1.0);
         end
+
         imgui.Text(name);
         imgui.PopStyleColor(1);
         imgui.Separator();
