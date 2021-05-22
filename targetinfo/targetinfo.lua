@@ -25,7 +25,7 @@
 
 _addon.author   = 'lejar';
 _addon.name     = 'targetinfo';
-_addon.version  = '1.0.0';
+_addon.version  = '1.0.1';
 
 require 'common'
 
